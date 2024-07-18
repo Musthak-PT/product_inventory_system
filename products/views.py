@@ -3,14 +3,16 @@ from .models import Product , SubVariant , Variant
 from .serializers import CreateOrUpdateProductSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
-# from .schemas import MilestoneResponseSchema
-# from rest_framework import filters
+from .schemas import ProductResponseSchema
+from rest_framework import filters
 from rest_framework.response import Response
 from product_inventory_system.response import ResponseInfo
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 
 # Create your views here.
+
+#________________________Create or update products___________________________
 class ProductCreateOrUpdateApiView(generics.GenericAPIView):
     serializer_class = CreateOrUpdateProductSerializer
     permission_classes = [IsAuthenticated]
@@ -49,3 +51,23 @@ class ProductCreateOrUpdateApiView(generics.GenericAPIView):
                 "status": False,
                 "message": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+#________________________Listing of all products___________________________
+class ProductListingApiView(generics.ListAPIView):
+    queryset = Product.objects.all().order_by('-id')
+    serializer_class = ProductResponseSchema
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id']
+    # permission_classes = [IsAuthenticated, IsMember]
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        instance_id = request.GET.get('id', None)
+        
+        if instance_id:
+            queryset = queryset.filter(pk=instance_id)
+        
+        page = self.paginate_queryset(queryset)
+        serializer = self.serializer_class(page, many=True, context={'request': request})
+        
+        return self.get_paginated_response(serializer.data)

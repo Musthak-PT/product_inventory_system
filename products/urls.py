@@ -5,10 +5,9 @@ app_name = 'products'
 
 urlpatterns = [
       
-    # path('products/', ProductListView.as_view(), name='product-list'),
     path('products/create/', views.ProductCreateOrUpdateApiView.as_view(), name='product-create-or-update'),
     path('products/list/', views.ProductListingApiView.as_view(), name='listing-products'),
-    # path('stock/add/<int:pk>/', AddStockView.as_view(), name='add-stock'),
-    # path('stock/remove/<int:pk>/', RemoveStockView.as_view(), name='remove-stock'),
-    
+    path('subvariant/<pk>/add_stock/', views.AddStockView.as_view(), name='add_stock'),
+    path('subvariant/<pk>/remove_stock/', views.RemoveStockView.as_view(), name='remove_stock'),
+        
 ]

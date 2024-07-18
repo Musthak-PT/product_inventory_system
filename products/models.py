@@ -32,4 +32,4 @@ class Variant(models.Model):
 class SubVariant(models.Model):
     variant   = models.ForeignKey(Variant, related_name='sub_variants', on_delete=models.CASCADE)
     name      = models.CharField(max_length=255)
-    stock     = models.DecimalField(default=0.00, max_digits=20, decimal_places=8)
+    stock     = models.IntegerField()

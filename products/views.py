@@ -1,12 +1,11 @@
 from django.shortcuts import render
-from .models import Product , SubVariant , Variant
-from .serializers import CreateOrUpdateProductSerializer
+from .models import Product , SubVariant
+from .serializers import CreateOrUpdateProductSerializer , SubVariantAddSerializer , SubVariantRemoveSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
 from .schemas import ProductResponseSchema
 from rest_framework import filters
 from rest_framework.response import Response
-from product_inventory_system.response import ResponseInfo
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 
@@ -58,7 +57,6 @@ class ProductListingApiView(generics.ListAPIView):
     serializer_class = ProductResponseSchema
     filter_backends = [filters.SearchFilter]
     search_fields = ['id']
-    # permission_classes = [IsAuthenticated, IsMember]
 
     def get(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -71,3 +69,54 @@ class ProductListingApiView(generics.ListAPIView):
         serializer = self.serializer_class(page, many=True, context={'request': request})
         
         return self.get_paginated_response(serializer.data)
+
+#________________________Adding stocks ___________________________
+class AddStockView(generics.UpdateAPIView):
+    queryset = SubVariant.objects.all()
+    serializer_class = SubVariantAddSerializer
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        additional_stock = request.data.get('stock', 0)
+
+        try:
+            additional_stock = int(additional_stock)
+        except ValueError:
+            return Response({'status': 'Invalid stock value'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if additional_stock < 0:
+            return Response({'status': 'Stock value must be positive'}, status=status.HTTP_400_BAD_REQUEST)
+
+        instance.stock += additional_stock
+        instance.save()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        
+        return Response({'status': 'Stock added', 'new_stock': instance.stock}, status=status.HTTP_200_OK)
+    
+#________________________ Removing stocks___________________________
+class RemoveStockView(generics.UpdateAPIView):
+    queryset = SubVariant.objects.all()
+    serializer_class = SubVariantRemoveSerializer
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        remove_stock = request.data.get('stock', 0)
+
+        if not isinstance(remove_stock, int):
+            try:
+                remove_stock = int(remove_stock)
+            except ValueError:
+                return Response({'status': 'Invalid stock value'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if remove_stock <= 0:
+            return Response({'status': 'Stock value must be positive'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if instance.stock < remove_stock:
+            return Response({'status': 'Not enough stock to remove'}, status=status.HTTP_400_BAD_REQUEST)
+
+        instance.stock -= remove_stock
+        instance.save()
+
+        return Response({'status': 'Stock removed', 'new_stock': instance.stock}, status=status.HTTP_200_OK)

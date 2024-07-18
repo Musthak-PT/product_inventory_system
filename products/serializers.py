@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import Product, Variant, SubVariant
-from django.utils import timezone
 
 class SubVariantSerializer(serializers.ModelSerializer):
     class Meta:
@@ -76,3 +75,15 @@ class CreateOrUpdateProductSerializer(serializers.ModelSerializer):
 
         return instance
 
+#________________Adding stock(Purchase)_____________________
+class SubVariantAddSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubVariant
+        fields = ['stock']
+#________________Removing stock(sales)_____________________
+class SubVariantRemoveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubVariant
+        fields = ['stock']       
+        
+        

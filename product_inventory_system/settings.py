@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'products',
     'authentication',
     'rest_framework_simplejwt',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -50,6 +51,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -137,3 +139,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 10,
 }
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    # add other origins as needed
+]
+
+# Optional: Allow credentials (cookies, authorization headers) to be included in cross-origin requests
+CORS_ALLOW_CREDENTIALS = True
